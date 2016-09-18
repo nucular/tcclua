@@ -1,8 +1,13 @@
 [tcc.lua](https://nucular.github.io/tcclua)
 ===========================================
 
+```
+luarocks install tcc
+```
+
 Provides semi-high-level bindings for `libtcc`, the library interface of the
 [Tiny C Compiler](http://bellard.org/tcc/).
+
 
 ```lua
 local tcc = require("tcc").load()
