@@ -1,3 +1,0 @@
-[submodule "tcc"]
-	path = tcc
-	url = git@github.com:LuaDist/tcc.git
