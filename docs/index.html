@@ -68,17 +68,17 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#load">load ([lib="libtcc"[, tccdir=$CONFIG_TCCDIR]])</a></td>
-	<td class="summary">Load libtcc.</td>
+	<td class="name" nowrap><a href="#load">load ([lib="[lib]tcc"[, home_path=$CONFIG_TCCDIR]])</a></td>
+	<td class="summary">Load the <code>libtcc</code> dynamic library.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#new">new ([addpaths=true])</a></td>
+	<td class="name" nowrap><a href="#new">new ([add_paths=true])</a></td>
 	<td class="summary">Create a new TCC compilation context (<a href="index.html#State">State</a>).</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#args">args (...)</a></td>
-	<td class="summary">Convert all passed arguments to <code>argc</code> and <code>argv</code> that can be passed to
- <a href="index.html#State:run">State:run</a>.</td>
+	<td class="summary">Convert all passed strings to <code>argc</code> and <code>argv</code> arguments that can be passed
+ to <a href="index.html#State:run">State:run</a>.</td>
 	</tr>
 </table>
 <h2><a href="#Tables">Tables</a></h2>
@@ -95,56 +95,60 @@
 <h2><a href="#Fields">Fields</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#tccdir">tccdir</a></td>
-	<td class="summary">Path to the TCC root, containing the <code>lib</code> and <code>include</code> directories.</td>
+	<td class="name" nowrap><a href="#home_path">home_path</a></td>
+	<td class="summary">Path to the TCC home, containing the <code>lib</code> and <code>include</code> directories.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#clib">clib</a></td>
+	<td class="summary">C library namespace of the dynamically loaded <code>libtcc</code>.</td>
 	</tr>
 </table>
 <h2><a href="#Class_State">Class State </a></h2>
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#State:delete">State:delete ()</a></td>
-	<td class="summary">Free the TCC compilation context.</td>
+	<td class="summary">Free the compilation context and associated resources.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:set_lib_path">State:set_lib_path (path)</a></td>
-	<td class="summary">Set <code>CONFIG_TCCDIR</code> at runtime.</td>
+	<td class="name" nowrap><a href="#State:set_home_path">State:set_home_path (path)</a></td>
+	<td class="summary">Set the home path of TCC used by this context.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#State:set_error_func">State:set_error_func (error_func)</a></td>
 	<td class="summary">Set the error/warning display callback.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:set_options">State:set_options (str)</a></td>
-	<td class="summary">Set options as from the command line (multiple supported).</td>
+	<td class="name" nowrap><a href="#State:set_options">State:set_options (args)</a></td>
+	<td class="summary">Set one or multiple command line arguments for the compiler.</td>
 	</tr>
 </table>
 <h2><a href="#Preprocessor">Preprocessor </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#State:add_include_path">State:add_include_path (pathname)</a></td>
+	<td class="name" nowrap><a href="#State:add_include_path">State:add_include_path (path)</a></td>
 	<td class="summary">Add an include path.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:add_sysinclude_path">State:add_sysinclude_path (pathname)</a></td>
+	<td class="name" nowrap><a href="#State:add_sysinclude_path">State:add_sysinclude_path (path)</a></td>
 	<td class="summary">Add a system include path.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:define_symbol">State:define_symbol (sym[, value])</a></td>
-	<td class="summary">Define preprocessor symbol <code>sym</code> with an optional value.</td>
+	<td class="name" nowrap><a href="#State:define_symbol">State:define_symbol (name[, value])</a></td>
+	<td class="summary">Define a preprocessor symbol with an optional value.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:undefine_symbol">State:undefine_symbol (sym)</a></td>
-	<td class="summary">Undefine preprocessor symbol 'sym'.</td>
+	<td class="name" nowrap><a href="#State:undefine_symbol">State:undefine_symbol (name)</a></td>
+	<td class="summary">Undefine a preprocessor symbol.</td>
 	</tr>
 </table>
 <h2><a href="#Compiling">Compiling </a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#State:add_file">State:add_file (filename)</a></td>
-	<td class="summary">Add a file (C file, dll, object, library, ld script).</td>
+	<td class="name" nowrap><a href="#State:add_file">State:add_file (file_path)</a></td>
+	<td class="summary">Add a file.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:compile_string">State:compile_string (buf)</a></td>
+	<td class="name" nowrap><a href="#State:compile_string">State:compile_string (source)</a></td>
 	<td class="summary">Compile a string containing a C source.</td>
 	</tr>
 </table>
@@ -155,20 +159,20 @@
 	<td class="summary">Set the output type.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:add_library_path">State:add_library_path (pathname)</a></td>
-	<td class="summary">Equivalent to the <code>-Lpath</code> option.</td>
+	<td class="name" nowrap><a href="#State:add_library_path">State:add_library_path (path)</a></td>
+	<td class="summary">Add a library path.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:add_library">State:add_library (libraryname)</a></td>
-	<td class="summary">Equivalent to the <code>-lpath</code> option.</td>
+	<td class="name" nowrap><a href="#State:add_library">State:add_library (name)</a></td>
+	<td class="summary">Add a library to be linked against.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:add_symbol">State:add_symbol (name, val)</a></td>
-	<td class="summary">Add a symbol to the compiled program.</td>
+	<td class="name" nowrap><a href="#State:add_symbol">State:add_symbol (name, value)</a></td>
+	<td class="summary">Add a pointer symbol to the compiled program.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#State:output_file">State:output_file (filename)</a></td>
-	<td class="summary">Output an executable, library or object file.</td>
+	<td class="name" nowrap><a href="#State:output_file">State:output_file (file_path)</a></td>
+	<td class="summary">Output a compiled executable, library or object file to a path.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#State:run">State:run ([argc[, argv]])</a></td>
@@ -176,11 +180,11 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#State:relocate">State:relocate (ptr)</a></td>
-	<td class="summary">Do all relocations (needed before using <a href="index.html#State:get_symbol">State:get_symbol</a>).</td>
+	<td class="summary">Do all relocations needed for using <a href="index.html#State:get_symbol">State:get_symbol</a>.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#State:get_symbol">State:get_symbol (name)</a></td>
-	<td class="summary">Return the pointer to a symbol or <code>NULL</code> if not found.</td>
+	<td class="summary">Return the pointer to a symbol or <code>NULL</code> if it was not found.</td>
 	</tr>
 </table>
 
@@ -193,28 +197,29 @@
     <dl class="function">
     <dt>
     <a name = "load"></a>
-    <strong>load ([lib="libtcc"[, tccdir=$CONFIG_TCCDIR]])</strong>
+    <strong>load ([lib="[lib]tcc"[, home_path=$CONFIG_TCCDIR]])</strong>
     </dt>
     <dd>
-    Load libtcc. </p>
+    Load the <code>libtcc</code> dynamic library. </p>
 
-<p> If the environment variable <code>CONFIG_TCCDIR</code> is set, <a href="index.html#tccdir">tccdir</a> will be set
- to its value. It can be overriden by passing the <code>tccdir</code> parameter.</p>
+<p> If the environment variable <code>CONFIG_TCCDIR</code> is set, <a href="index.html#home_path">home_path</a> will be set
+ to its value. It can be overriden by passing the <code>home_path</code> parameter.</p>
 
-<p> If <a href="index.html#tccdir">tccdir</a> is set, it will be searched for the library before the default
- search paths are searched.
+<p> If <a href="index.html#home_path">home_path</a> is set, it will be searched for the library before the
+ default paths.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">lib</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-         name of the libtcc library
-         (<em>default</em> "libtcc")
+         name of the libtcc library, defaults to
+ <code>libtcc</code> on Windows and <code>tcc</code> on other platforms due to naming issues
+         (<em>default</em> "[lib]tcc")
         </li>
-        <li><span class="parameter">tccdir</span>
+        <li><span class="parameter">home_path</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-         path to the TCC root
+         path to the TCC home
          (<em>default</em> $CONFIG_TCCDIR)
         </li>
     </ul>
@@ -223,36 +228,35 @@
     <ol>
 
            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        the <code>tcc</code> module itself
+        the <code>tcc</code> module itself (to allow for chaining)
     </ol>
 
 
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example"><span class="keyword">local</span> tcc = <span class="global">require</span>(<span class="string">"tcc"</span>).<span class="global">load</span>(<span class="string">"libtcc"</span>, <span class="string">"/lib/tcc"</span>)</pre>
+        <pre class="example"><span class="keyword">local</span> tcc = <span class="global">require</span>(<span class="string">"tcc"</span>).<span class="global">load</span>(<span class="string">"tcc"</span>, <span class="string">"/lib/tcc"</span>)</pre>
     </ul>
 
 </dd>
     <dt>
     <a name = "new"></a>
-    <strong>new ([addpaths=true])</strong>
+    <strong>new ([add_paths=true])</strong>
     </dt>
     <dd>
     Create a new TCC compilation context (<a href="index.html#State">State</a>). </p>
 
-<p> If <code>addpaths</code> is not <code>false</code> and <a href="index.html#tccdir">tccdir</a> is set, call
- <a href="index.html#State:set_lib_path">State:set_lib_path</a>, <a href="index.html#State:add_sysinclude_path">State:add_sysinclude_path</a> and
- <a href="index.html#State:add_library_path">State:add_library_path</a>.
+<p> If <code>add_paths</code> is not <code>false</code> and <a href="index.html#home_path">home_path</a> is set, call
+ <a href="index.html#State:set_home_path">State:set_home_path</a> on it, <a href="index.html#State:add_sysinclude_path">State:add_sysinclude_path</a> on
+ <code>home_path/include</code> and <a href="index.html#State:add_library_path">State:add_library_path</a> on <code>home_path/lib</code>.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">addpaths</span>
+        <li><span class="parameter">add_paths</span>
             <span class="types"><span class="type">bool</span></span>
-
-
-
+         whether to set the home path on the new
+ <a href="index.html#State">State</a>
          (<em>default</em> true)
         </li>
     </ul>
@@ -261,9 +265,7 @@
     <ol>
 
            <span class="types"><a class="type" href="index.html#State">State</a></span>
-
-
-
+        the new compilation context
     </ol>
 
 
@@ -275,26 +277,26 @@
     <strong>args (...)</strong>
     </dt>
     <dd>
-    Convert all passed arguments to <code>argc</code> and <code>argv</code> that can be passed to
- <a href="index.html#State:run">State:run</a>.
+    Convert all passed strings to <code>argc</code> and <code>argv</code> arguments that can be passed
+ to <a href="index.html#State:run">State:run</a>.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">...</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-         any arguments
+         any number of string arguments
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
         <li>
-           <span class="types"><span class="type">int</span></span>
-        argc</li>
+           <span class="types"><span class="type">cdata(int)</span></span>
+        number of passed arguments</li>
         <li>
-           <span class="types"><span class="type">char**</span></span>
-        argv</li>
+           <span class="types"><span class="type">cdata(char**)</span></span>
+        passed arguments as an array of C strings</li>
     </ol>
 
 
@@ -369,12 +371,26 @@
 
     <dl class="function">
     <dt>
-    <a name = "tccdir"></a>
-    <strong>tccdir</strong>
+    <a name = "home_path"></a>
+    <strong>home_path</strong>
     </dt>
     <dd>
-    Path to the TCC root, containing the <code>lib</code> and <code>include</code> directories.
- Set by <a href="index.html#load">tcc.load</a>.
+    Path to the TCC home, containing the <code>lib</code> and <code>include</code> directories.
+ Usually set automatically by <a href="index.html#load">tcc.load</a>.
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "clib"></a>
+    <strong>clib</strong>
+    </dt>
+    <dd>
+    C library namespace of the dynamically loaded <code>libtcc</code>.  Set by <a href="index.html#load">tcc.load</a>.
 
 
 
@@ -387,7 +403,7 @@
     <h2 class="section-header has-description"><a name="Class_State"></a>Class State </h2>
 
           <div class="section-description">
-          A TCC compilation context
+          A TCC compilation context.
           </div>
     <dl class="function">
     <dt>
@@ -395,9 +411,8 @@
     <strong>State:delete ()</strong>
     </dt>
     <dd>
-    Free the TCC compilation context. </p>
-
-<p> Called automatically when collected.
+    Free the compilation context and associated resources.  Usually called
+ automatically when the <a href="index.html#State">State</a> is garbage-collected.
 
 
 
@@ -407,11 +422,14 @@
 
 </dd>
     <dt>
-    <a name = "State:set_lib_path"></a>
-    <strong>State:set_lib_path (path)</strong>
+    <a name = "State:set_home_path"></a>
+    <strong>State:set_home_path (path)</strong>
     </dt>
     <dd>
-    Set <code>CONFIG_TCCDIR</code> at runtime.
+    Set the home path of TCC used by this context.  Usually called automatically
+ by <a href="index.html#new">new</a>.</p>
+
+<p> Originally named <code>set_lib_path</code> but renamed for consistency and clarity.
 
 
     <h3>Parameters:</h3>
@@ -436,15 +454,15 @@
     <dd>
     Set the error/warning display callback. </p>
 
-<p> The passed <code>msg</code> strings will be formatted like
+<p> The passed output strings will be formatted like
  <code>&lt;file or "tcc"&gt;:[&lt;line&gt;:] &lt;severity&gt; &lt;message&gt;</code>.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">error_func</span>
-            <span class="types"><span class="type">func</span></span>
-         function(msg)
+            <span class="types"><span class="type">function(string)</span></span>
+         function to be called
         </li>
     </ul>
 
@@ -455,19 +473,17 @@
 </dd>
     <dt>
     <a name = "State:set_options"></a>
-    <strong>State:set_options (str)</strong>
+    <strong>State:set_options (args)</strong>
     </dt>
     <dd>
-    Set options as from the command line (multiple supported).
+    Set one or multiple command line arguments for the compiler.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">str</span>
+        <li><span class="parameter">args</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         the arguments
         </li>
     </ul>
 
@@ -488,7 +504,7 @@
     <dl class="function">
     <dt>
     <a name = "State:add_include_path"></a>
-    <strong>State:add_include_path (pathname)</strong>
+    <strong>State:add_include_path (path)</strong>
     </dt>
     <dd>
     Add an include path.
@@ -496,11 +512,9 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">pathname</span>
+        <li><span class="parameter">path</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         include path to be added
         </li>
     </ul>
 
@@ -517,19 +531,17 @@
 </dd>
     <dt>
     <a name = "State:add_sysinclude_path"></a>
-    <strong>State:add_sysinclude_path (pathname)</strong>
+    <strong>State:add_sysinclude_path (path)</strong>
     </dt>
     <dd>
-    Add a system include path.
+    Add a system include path.  Usually called automatically by <a href="index.html#new">new</a>.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">pathname</span>
+        <li><span class="parameter">path</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         system include path to be added
         </li>
     </ul>
 
@@ -546,25 +558,21 @@
 </dd>
     <dt>
     <a name = "State:define_symbol"></a>
-    <strong>State:define_symbol (sym[, value])</strong>
+    <strong>State:define_symbol (name[, value])</strong>
     </dt>
     <dd>
-    Define preprocessor symbol <code>sym</code> with an optional value.
+    Define a preprocessor symbol with an optional value.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">sym</span>
+        <li><span class="parameter">name</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         name of the symbol
         </li>
         <li><span class="parameter">value</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         optional value of the symbol
          (<em>optional</em>)
         </li>
     </ul>
@@ -576,19 +584,17 @@
 </dd>
     <dt>
     <a name = "State:undefine_symbol"></a>
-    <strong>State:undefine_symbol (sym)</strong>
+    <strong>State:undefine_symbol (name)</strong>
     </dt>
     <dd>
-    Undefine preprocessor symbol 'sym'.
+    Undefine a preprocessor symbol.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">sym</span>
+        <li><span class="parameter">name</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         name of the symbol
         </li>
     </ul>
 
@@ -603,19 +609,26 @@
     <dl class="function">
     <dt>
     <a name = "State:add_file"></a>
-    <strong>State:add_file (filename)</strong>
+    <strong>State:add_file (file_path)</strong>
     </dt>
     <dd>
-    Add a file (C file, dll, object, library, ld script).
+
+<p>Add a file.
+ This includes:</p>
+
+<ul>
+    <li>C files to be compiled</li>
+    <li>DLLs, object files and libraries to be linked against</li>
+    <li>ld scripts</li>
+</ul>
+
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">filename</span>
+        <li><span class="parameter">file_path</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         path to the file to be added
         </li>
     </ul>
 
@@ -632,7 +645,7 @@
 </dd>
     <dt>
     <a name = "State:compile_string"></a>
-    <strong>State:compile_string (buf)</strong>
+    <strong>State:compile_string (source)</strong>
     </dt>
     <dd>
     Compile a string containing a C source.
@@ -640,11 +653,9 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">buf</span>
+        <li><span class="parameter">source</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         source code to be compiled
         </li>
     </ul>
 
@@ -696,19 +707,17 @@
 </dd>
     <dt>
     <a name = "State:add_library_path"></a>
-    <strong>State:add_library_path (pathname)</strong>
+    <strong>State:add_library_path (path)</strong>
     </dt>
     <dd>
-    Equivalent to the <code>-Lpath</code> option.
+    Add a library path.  Equivalent to the <code>-Lpath</code> option.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">pathname</span>
+        <li><span class="parameter">path</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         library path to be added
         </li>
     </ul>
 
@@ -725,19 +734,17 @@
 </dd>
     <dt>
     <a name = "State:add_library"></a>
-    <strong>State:add_library (libraryname)</strong>
+    <strong>State:add_library (name)</strong>
     </dt>
     <dd>
-    Equivalent to the <code>-lpath</code> option.
+    Add a library to be linked against.  Equivalent to the <code>-lname</code> option.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">libraryname</span>
+        <li><span class="parameter">name</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         name of the library to be linked against
         </li>
     </ul>
 
@@ -754,25 +761,21 @@
 </dd>
     <dt>
     <a name = "State:add_symbol"></a>
-    <strong>State:add_symbol (name, val)</strong>
+    <strong>State:add_symbol (name, value)</strong>
     </dt>
     <dd>
-    Add a symbol to the compiled program.
+    Add a pointer symbol to the compiled program.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">name</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         name of the symbol
         </li>
-        <li><span class="parameter">val</span>
-            <span class="types"><span class="type">void*</span></span>
-
-
-
+        <li><span class="parameter">value</span>
+            <span class="types"><span class="type">cdata(void*)</span></span>
+         pointer of the symbol
         </li>
     </ul>
 
@@ -793,21 +796,18 @@
 </dd>
     <dt>
     <a name = "State:output_file"></a>
-    <strong>State:output_file (filename)</strong>
+    <strong>State:output_file (file_path)</strong>
     </dt>
     <dd>
-    Output an executable, library or object file. </p>
-
-<p> <strong>Do not</strong> call <a href="index.html#State:relocate">State:relocate</a> before.
+    Output a compiled executable, library or object file to a path.  <strong>Do not</strong>
+ call <a href="index.html#State:relocate">State:relocate</a> before.
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">filename</span>
+        <li><span class="parameter">file_path</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         output file path
         </li>
     </ul>
 
@@ -827,25 +827,20 @@
     <strong>State:run ([argc[, argv]])</strong>
     </dt>
     <dd>
-    Link and run the <code>main()</code> function and return its return code. </p>
-
-<p> <strong>Do not</strong> call <a href="index.html#State:relocate">State:relocate</a> before.
+    Link and run the <code>main()</code> function and return its return code.  <strong>Do not</strong>
+ call <a href="index.html#State:relocate">State:relocate</a> before.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">argc</span>
-            <span class="types"><span class="type">int</span></span>
-
-
-
+            <span class="types"><span class="type">cdata(int)</span></span>
+         number of passed arguments
          (<em>optional</em>)
         </li>
         <li><span class="parameter">argv</span>
-            <span class="types"><span class="type">char**</span></span>
-
-
-
+            <span class="types"><span class="type">cdata(char**)</span></span>
+         arguments as an array of C-strings
          (<em>optional</em>)
         </li>
     </ul>
@@ -853,7 +848,7 @@
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><span class="type">int</span></span>
+           <span class="types"><span class="type">cdata(int)</span></span>
         return code
     </ol>
 
@@ -878,14 +873,18 @@ state:run(<span class="number">2</span>, argv)</pre>
     <strong>State:relocate (ptr)</strong>
     </dt>
     <dd>
-    Do all relocations (needed before using <a href="index.html#State:get_symbol">State:get_symbol</a>).
+    Do all relocations needed for using <a href="index.html#State:get_symbol">State:get_symbol</a>.
+ This can be done either within internally managed memory (by passing
+ <a href="index.html#RELOCATE">RELOCATE.AUTO</a>) or within an user-managed memory chunk that is at
+ least of the size that is returned by passing <a href="index.html#RELOCATE">RELOCATE.SIZE</a>.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">ptr</span>
-            <span class="types"><span class="type">void*</span></span>
-         or one of <a href="index.html#RELOCATE">RELOCATE</a>
+            <span class="types"><span class="type">cdata(void*)</span></span>
+         pointer to a memory chunk or one of the members of
+ <a href="index.html#RELOCATE">RELOCATE</a>
         </li>
     </ul>
 
@@ -898,12 +897,20 @@ state:run(<span class="number">2</span>, argv)</pre>
      <h3>Or</h3>
     <ol>
 
-           <span class="types"><span class="type">int</span></span>
-        required memory size when <a href="index.html#RELOCATE">RELOCATE.SIZE</a> is passed
+           <span class="types"><span class="type">number</span></span>
+        required memory size if <a href="index.html#RELOCATE">RELOCATE.SIZE</a> was
+ passed
     </ol>
 
 
 
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">
+<span class="keyword">local</span> size = state:relocate(tcc.RELOCATE.SIZE)
+<span class="keyword">local</span> mem = ffi.new(<span class="string">"char[?]"</span>, size)
+state:relocate(mem)</pre>
+    </ul>
 
 </dd>
     <dt>
@@ -911,26 +918,22 @@ state:run(<span class="number">2</span>, argv)</pre>
     <strong>State:get_symbol (name)</strong>
     </dt>
     <dd>
-    Return the pointer to a symbol or <code>NULL</code> if not found.
+    Return the pointer to a symbol or <code>NULL</code> if it was not found.
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">name</span>
             <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
-
-
+         name of the symbol
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><span class="type">void*</span></span>
-
-
-
+           <span class="types"><span class="type">cdata(void*)</span></span>
+        pointer to the symbol
     </ol>
 
 
@@ -948,7 +951,7 @@ state:run(<span class="number">2</span>, argv)</pre>
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.3</a></i>
-<i style="float:right;">Last updated 2016-09-18 21:56:42 </i>
+<i style="float:right;">Last updated 2016-12-31 16:07:37 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

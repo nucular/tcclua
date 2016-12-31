@@ -20,29 +20,33 @@ tcc.RELOCATE = {
   AUTO = ffi.cast("void*", 1) -- allocate and manage memory internally
 }
 
---- Path to the TCC root, containing the `lib` and `include` directories.
---- Set by @{tcc.load}.
-tcc.tccdir = nil
+--- Path to the TCC home, containing the `lib` and `include` directories.
+--- Usually set automatically by @{tcc.load}.
+tcc.home_path = nil
 
---- Load libtcc.
+--- C library namespace of the dynamically loaded `libtcc`. Set by @{tcc.load}.
+tcc.clib = nil
+
+--- Load the `libtcc` dynamic library.
 ---
---- If the environment variable `CONFIG_TCCDIR` is set, @{tccdir} will be set
---- to its value. It can be overriden by passing the `tccdir` parameter.
+--- If the environment variable `CONFIG_TCCDIR` is set, @{home_path} will be set
+--- to its value. It can be overriden by passing the `home_path` parameter.
 ---
---- If @{tccdir} is set, it will be searched for the library before the default
---- search paths are searched.
--- @tparam[opt="libtcc"] string lib name of the libtcc library
--- @tparam[opt=$CONFIG_TCCDIR] string tccdir path to the TCC root
--- @treturn table the `tcc` module itself
+--- If @{home_path} is set, it will be searched for the library before the
+--- default paths.
+-- @tparam[opt="[lib]tcc"] string lib name of the libtcc library, defaults to
+-- `libtcc` on Windows and `tcc` on other platforms due to naming issues
+-- @tparam[opt=$CONFIG_TCCDIR] string home_path path to the TCC home
+-- @treturn table the `tcc` module itself (to allow for chaining)
 -- @usage
---local tcc = require("tcc").load("libtcc", "/lib/tcc")
-function tcc.load(lib, tccdir)
-  if tccdir then
-    tcc.tccdir = tccdir
+--local tcc = require("tcc").load("tcc", "/lib/tcc")
+function tcc.load(lib, home_path)
+  if home_path then
+    tcc.home_path = tccdir
   else
-    tcc.tccdir = os.getenv("CONFIG_TCCDIR") or tcc.tccdir
+    tcc.home_path = os.getenv("CONFIG_TCCDIR") or tcc.home_path
   end
-  lib = lib or "libtcc"
+  lib = lib or (ffi.os == "Windows" and "libtcc" or "tcc")
 
   ffi.cdef([[
     struct TCCState;
@@ -71,8 +75,8 @@ function tcc.load(lib, tccdir)
   ffi.metatype("TCCState", tcc.State)
 
   local clib
-  if tcc.tccdir then
-    clib = pcall(ffi.load(("%s/%s"):format(tcc.tccdir, lib)))
+  if tcc.home_path then
+    clib = pcall(ffi.load(("%s/%s"):format(tcc.home_path, lib)))
   end
   if not clib then
     clib = ffi.load(lib)
@@ -83,27 +87,28 @@ end
 
 --- Create a new TCC compilation context (@{State}).
 ---
---- If `addpaths` is not `false` and @{tccdir} is set, call
---- @{State:set_lib_path}, @{State:add_sysinclude_path} and
---- @{State:add_library_path}.
--- @tparam[opt=true] bool addpaths
--- @treturn State
-function tcc.new(addpaths)
+--- If `add_paths` is not `false` and @{home_path} is set, call
+--- @{State:set_home_path} on it, @{State:add_sysinclude_path} on
+--- `home_path/include` and @{State:add_library_path} on `home_path/lib`.
+-- @tparam[opt=true] bool add_paths whether to set the home path on the new
+-- @{State}
+-- @treturn State the new compilation context
+function tcc.new(add_paths)
   local state = tcc.clib.tcc_new()
   ffi.gc(state, tcc.State.__gc)
   if addpaths ~= false and tcc.tccdir then
-    state:set_lib_path(tcc.tccdir)
+    state:set_home_path(tcc.tccdir)
     state:add_sysinclude_path(tcc.tccdir .. "/include")
     state:add_library_path(tcc.tccdir .. "/lib")
   end
   return state
 end
 
---- Convert all passed arguments to `argc` and `argv` that can be passed to
---- @{State:run}.
--- @tparam string ... any arguments
--- @treturn int argc
--- @treturn char** argv
+--- Convert all passed strings to `argc` and `argv` arguments that can be passed
+--- to @{State:run}.
+-- @tparam string ... any number of string arguments
+-- @treturn cdata(int) number of passed arguments
+-- @treturn cdata(char**) passed arguments as an array of C strings
 -- @usage
 --state:run(tcc.args("foo", "bar"))
 function tcc.args(...)
@@ -119,88 +124,95 @@ function tcc.args(...)
   return argc, argv
 end
 
---- A TCC compilation context
+--- A TCC compilation context.
 -- @type State
 local State = {}
 tcc.State = State
 State.__index = State
 
---- Free the TCC compilation context.
----
---- Called automatically when collected.
+--- Free the compilation context and associated resources. Usually called
+--- automatically when the @{State} is garbage-collected.
 function State:delete()
   tcc.clib.tcc_delete(self)
 end
 
---- Set `CONFIG_TCCDIR` at runtime.
+--- Set the home path of TCC used by this context. Usually called automatically
+--- by @{new}.
+---
+--- Originally named `set_lib_path` but renamed for consistency and clarity.
 -- @tparam string path
-function State:set_lib_path(path)
+function State:set_home_path(path)
   tcc.clib.tcc_set_lib_path(self, path)
 end
 
 --- Set the error/warning display callback.
 ---
---- The passed `msg` strings will be formatted like
+--- The passed output strings will be formatted like
 --- `<file or "tcc">:[<line>:] <severity> <message>`.
--- @tparam func error_func function(msg)
+-- @tparam function(string) error_func function to be called
 function State:set_error_func(error_func)
   tcc.clib.tcc_set_error_func(self, nil, function(_, msg)
     error_func(ffi.string(msg))
   end)
 end
 
---- Set options as from the command line (multiple supported).
--- @tparam string str
+--- Set one or multiple command line arguments for the compiler.
+-- @tparam string args the arguments
 -- @treturn bool success
-function State:set_options(str)
-  return tcc.clib.tcc_set_options(self, str) == 0
+function State:set_options(args)
+  return tcc.clib.tcc_set_options(self, args) == 0
 end
 
 --- Preprocessor
 -- @section
 
 --- Add an include path.
--- @tparam string pathname
+-- @tparam string path include path to be added
 -- @treturn bool success
-function State:add_include_path(pathname)
-  return tcc.clib.tcc_add_include_path(self, pathname) == 0
+function State:add_include_path(path)
+  return tcc.clib.tcc_add_include_path(self, path) == 0
 end
 
---- Add a system include path.
--- @tparam string pathname
+--- Add a system include path. Usually called automatically by @{new}.
+-- @tparam string path system include path to be added
 -- @treturn bool success
-function State:add_sysinclude_path(pathname)
-  return tcc.clib.tcc_add_sysinclude_path(self, pathname) == 0
+function State:add_sysinclude_path(path)
+  return tcc.clib.tcc_add_sysinclude_path(self, path) == 0
 end
 
---- Define preprocessor symbol `sym` with an optional value.
--- @tparam string sym
--- @tparam[opt] string value
-function State:define_symbol(sym, value)
+--- Define a preprocessor symbol with an optional value.
+-- @tparam string name name of the symbol
+-- @tparam[opt] string value optional value of the symbol 
+function State:define_symbol(name, value)
   tcc.clib.tcc_define_symbol(self, sym, value)
 end
 
---- Undefine preprocessor symbol 'sym'.
--- @tparam string sym
-function State:undefine_symbol(sym)
+--- Undefine a preprocessor symbol.
+-- @tparam string name name of the symbol
+function State:undefine_symbol(name)
   tcc.clib.tcc_undefine_symbol(self, sym)
 end
 
 --- Compiling
 -- @section
 
---- Add a file (C file, dll, object, library, ld script).
--- @tparam string filename
+--- Add a file.
+--- This includes:
+---
+--- - C files to be compiled
+--- - DLLs, object files and libraries to be linked against
+--- - ld scripts
+-- @tparam string file_path path to the file to be added
 -- @treturn bool success
-function State:add_file(filename)
-  return tcc.clib.tcc_add_file(self, filename) == 0
+function State:add_file(file_path)
+  return tcc.clib.tcc_add_file(self, file_path) == 0
 end
 
 --- Compile a string containing a C source.
--- @tparam string buf
+-- @tparam string source source code to be compiled
 -- @treturn bool success
-function State:compile_string(buf)
-  return tcc.clib.tcc_compile_string(self, buf) == 0
+function State:compile_string(source)
+  return tcc.clib.tcc_compile_string(self, source) == 0
 end
 
 --- Linking commands
@@ -215,44 +227,42 @@ function State:set_output_type(output_type)
   return tcc.clib.tcc_set_output_type(self, output_type) == 0
 end
 
---- Equivalent to the `-Lpath` option.
--- @tparam string pathname
+--- Add a library path. Equivalent to the `-Lpath` option.
+-- @tparam string path library path to be added
 -- @treturn bool success
-function State:add_library_path(pathname)
-  return tcc.clib.tcc_add_library_path(self, pathname) == 0
+function State:add_library_path(path)
+  return tcc.clib.tcc_add_library_path(self, path) == 0
 end
 
---- Equivalent to the `-lpath` option.
--- @tparam string libraryname
+--- Add a library to be linked against. Equivalent to the `-lname` option.
+-- @tparam string name name of the library to be linked against
 -- @treturn bool success
-function State:add_library(libraryname)
-  return tcc.clib.tcc_add_library(self, libraryname) == 0
+function State:add_library(name)
+  return tcc.clib.tcc_add_library(self, name) == 0
 end
 
---- Add a symbol to the compiled program.
--- @tparam string name
--- @tparam void* val
+--- Add a pointer symbol to the compiled program.
+-- @tparam string name name of the symbol
+-- @tparam cdata(void*) value pointer of the symbol
 -- @treturn bool success
 -- @see ./examples/add_symbol.lua.html
-function State:add_symbol(name, val)
-  return tcc.clib.tcc_add_symbol(self, name, val) == 0
+function State:add_symbol(name, value)
+  return tcc.clib.tcc_add_symbol(self, name, value) == 0
 end
 
---- Output an executable, library or object file.
----
---- **Do not** call @{State:relocate} before.
--- @tparam string filename
+--- Output a compiled executable, library or object file to a path. **Do not**
+--- call @{State:relocate} before.
+-- @tparam string file_path output file path
 -- @treturn bool success
-function State:output_file(filename)
-  return tcc.clib.tcc_output_file(self, filename) == 0
+function State:output_file(file_path)
+  return tcc.clib.tcc_output_file(self, file_path) == 0
 end
 
---- Link and run the `main()` function and return its return code.
----
---- **Do not** call @{State:relocate} before.
--- @tparam[opt] int argc
--- @tparam[opt] char** argv
--- @treturn int return code
+--- Link and run the `main()` function and return its return code. **Do not**
+--- call @{State:relocate} before.
+-- @tparam[opt] cdata(int) argc number of passed arguments
+-- @tparam[opt] cdata(char**) argv arguments as an array of C-strings
+-- @treturn cdata(int) return code
 -- @usage
 --local argv = ffi.new("char*[2]")
 --argv[0] = "foo"
@@ -263,10 +273,19 @@ function State:run(argc, argv)
   return tcc.clib.tcc_run(self, argc, argv)
 end
 
---- Do all relocations (needed before using @{State:get_symbol}).
--- @tparam void* ptr or one of @{RELOCATE}
+--- Do all relocations needed for using @{State:get_symbol}.
+--- This can be done either within internally managed memory (by passing
+--- @{RELOCATE|RELOCATE.AUTO}) or within an user-managed memory chunk that is at
+--- least of the size that is returned by passing @{RELOCATE|RELOCATE.SIZE}.
+-- @tparam cdata(void*) ptr pointer to a memory chunk or one of the members of
+-- @{RELOCATE}
 -- @treturn[0] bool success
--- @treturn[1] int required memory size when @{RELOCATE|RELOCATE.SIZE} is passed
+-- @treturn[1] number required memory size if @{RELOCATE|RELOCATE.SIZE} was
+-- passed
+-- @usage
+--local size = state:relocate(tcc.RELOCATE.SIZE)
+--local mem = ffi.new("char[?]", size)
+--state:relocate(mem)
 function State:relocate(ptr)
   if ptr == tcc.RELOCATE.SIZE then
     return tcc.clib.tcc_relocate(self, ptr)
@@ -275,9 +294,9 @@ function State:relocate(ptr)
   end
 end
 
---- Return the pointer to a symbol or `NULL` if not found.
--- @tparam string name
--- @treturn void*
+--- Return the pointer to a symbol or `NULL` if it was not found.
+-- @tparam string name name of the symbol
+-- @treturn cdata(void*) pointer to the symbol
 -- @see ./examples/get_symbol.lua.html
 function State:get_symbol(name)
   return tcc.clib.tcc_get_symbol(self, name)
