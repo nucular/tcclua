@@ -5,6 +5,12 @@
 local tcc = {}
 local ffi = require("ffi")
 
+tcc._NAME = "tcc"
+tcc._VERSION = "scm"
+
+--- Compatible version of TCC (currently `0.9.26`)
+tcc.TCC_VERSION = "0.9.26"
+
 --- Output types used by @{State:set_output_type}
 tcc.OUTPUT = {
   MEMORY = 0, -- output will be run in memory (default)
