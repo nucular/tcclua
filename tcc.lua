@@ -48,7 +48,7 @@ tcc.clib = nil
 --local tcc = require("tcc").load("tcc", "/lib/tcc")
 function tcc.load(lib, home_path)
   if home_path then
-    tcc.home_path = tccdir
+    tcc.home_path = home_path
   else
     tcc.home_path = os.getenv("CONFIG_TCCDIR") or tcc.home_path
   end
